@@ -1,0 +1,12 @@
+video_*
+source_frame
+source_mask
+target_frame
+target_mask
+test_frame
+test_mask
+google
+cache
+PIPNet
+__pycache__
+*.onnx
