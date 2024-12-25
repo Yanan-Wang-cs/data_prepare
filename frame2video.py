@@ -28,28 +28,29 @@ def images_to_video(image_folder, output_video, fps=30):
     print(f"视频已保存为 {output_video}")
 
 # 使用示例
-# replace_name='keypoint'
-# image_folder = f'/l/users/yanan.wang/project/MixHeadSwap/dataset/{replace_name}/'  # 替换为图片文件夹路径
+replace_name='frame'
+image_folder = f'/l/users/yanan.wang/project/MixHeadSwap/dataset/new_data/id01822/{replace_name}'  # 替换为图片文件夹路径
 
 
-# gt_frames = sorted(list(Path(image_folder).rglob("*.[jp][pn]g")))
-# gt_videos = set()
+gt_frames = sorted(list(Path(image_folder).rglob("*.[jp][pn]g")))
+gt_videos = set()
 
-# # Add unique parent folders of frames
-# for frame in gt_frames:
-#     folder = str(frame.parent)
-#     if folder not in gt_videos:
-#         gt_videos.add(folder)
+# Add unique parent folders of frames
+for frame in gt_frames:
+    folder = str(frame.parent)
+    if folder not in gt_videos:
+        gt_videos.add(folder)
 
-# # Convert set back to list if needed
-# gt_videos = list(gt_videos)
+# Convert set back to list if needed
+gt_videos = list(gt_videos)
 
-# for video in gt_videos:
-#     save_path = video.replace(replace_name, f'video/{replace_name}')
-#     if not os.path.exists(save_path+'/output.mp4'):
-#         os.makedirs(save_path,exist_ok=True)
-#         images_to_video(video, save_path+'/output.mp4', fps=30)
+for video in gt_videos:
+    save_path = video.replace('new_data', f'newvideo/{replace_name}')
+    save_path = save_path.replace('/frame', '').replace('/0000', '')
+    if not os.path.exists(save_path+'/output.mp4'):
+        os.makedirs(save_path,exist_ok=True)
+        images_to_video(video, save_path+'/output.mp4', fps=30)
 
-mpath = '/l/users/yanan.wang/project/MixHeadSwap/animatediff_video_concatkeypoint2/inference'
-images_to_video(mpath, mpath+'/output.mp4', fps=30)
+# mpath = '/l/users/yanan.wang/project/MixHeadSwap/animatediff_video_concatkeypoint2/inference'
+# images_to_video(mpath, mpath+'/output.mp4', fps=30)
 

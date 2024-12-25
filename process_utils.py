@@ -1,6 +1,29 @@
 import numpy as np
 import cv2
 
+def new_crop_with_padding(image, faceBox,scale=1.8,size=512,align=True):
+    cx_box = (faceBox[0] + faceBox[2]) / 2.
+    cy_box = (faceBox[1] + faceBox[3]) / 2.
+    width = faceBox[2] - faceBox[0] + 1
+    height = faceBox[3] - faceBox[1] + 1
+    face_size = max(width, height)
+    bbox_size = min(int(face_size * scale),image.shape[1],image.shape[0])
+   
+    x_min = max(0,int(cx_box-bbox_size / 2.))
+    y_min = max(0,int(cy_box-bbox_size / 2.))
+    x_max = x_min + bbox_size
+    y_max = y_min + bbox_size
+    if x_max > image.shape[1]:
+        x_max = image.shape[1]
+        x_min = x_max - bbox_size
+    if y_max > image.shape[0]:
+        y_max = image.shape[0]
+        y_min = y_max - bbox_size
+
+    boundingBox = [max(x_min, 0), max(y_min, 0), min(x_max, image.shape[1]), min(y_max, image.shape[0])]
+    boundingBox = [int(x) for x in boundingBox]
+    return boundingBox
+    
 def crop_with_padding(image, lmks,scale=1.8,size=512,align=True):
 
     img_box = [np.min(lmks[:, 0]), np.min(lmks[:, 1]), np.max(lmks[:, 0]), np.max(lmks[:, 1])]
@@ -133,7 +156,21 @@ def choose_one_detection(frame_faces,box):
         
        
     return np.array(retval).tolist()
+def is_box_inside(big_box, small_box):
+    """
+    判断小框是否在大框内
+    Args:
+        big_box: (x2_min, y2_min, x2_max, y2_max) 大框的坐标
+        small_box: (x1_min, y1_min, x1_max, y1_max) 小框的坐标
+    Returns:
+        bool: 小框是否完全位于大框内
+    """
+    x2_min, y2_min, x2_max, y2_max = big_box
+    x1_min, y1_min, x1_max, y1_max = small_box
 
+    # 判断小框的所有顶点是否都在大框内
+    return (x1_min >= x2_min and y1_min >= y2_min and
+            x1_max <= x2_max and y1_max <= y2_max)
 
 def compute_iou(rec1, rec2):
     """
@@ -163,3 +200,19 @@ def compute_iou(rec1, rec2):
         intersect = (right_line - left_line) * (bottom_line - top_line)
         return (intersect / (sum_area - intersect))*1.0
         # return intersect / S_rec2
+
+def images_to_video(images, output_video, fps=30):
+    height,width = images[0].shape[:2]
+    # 初始化视频写入对象
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 编码格式
+    video = cv2.VideoWriter(output_video, fourcc, fps, (width, height))
+
+    # 将每一张图片写入视频
+    for image in images:
+        opencv_image = np.array(image)
+        opencv_image = cv2.cvtColor(opencv_image[...,::-1], cv2.COLOR_RGB2BGR)
+        video.write(opencv_image)
+
+    # 释放资源
+    video.release()
+    # print(f"视频已保存为 {output_video}, video length: {len(images)}")
