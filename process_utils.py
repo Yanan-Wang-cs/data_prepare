@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import torch
 
 def new_crop_with_padding(image, faceBox,scale=1.8,size=512,align=True):
     cx_box = (faceBox[0] + faceBox[2]) / 2.
@@ -183,7 +184,8 @@ def compute_iou(rec1, rec2):
     # computing area of each rectangles
     S_rec1 = (rec1[2] - rec1[0]) * (rec1[3] - rec1[1])
     S_rec2 = (rec2[2] - rec2[0]) * (rec2[3] - rec2[1])
- 
+    if S_rec1 / S_rec2 > 10 or S_rec2 / S_rec1 > 10:
+        return 0
     # computing the sum_area
     sum_area = S_rec1 + S_rec2
  
@@ -200,6 +202,13 @@ def compute_iou(rec1, rec2):
         intersect = (right_line - left_line) * (bottom_line - top_line)
         return (intersect / (sum_area - intersect))*1.0
         # return intersect / S_rec2
+def xywh2xyxy(x):
+    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    x1 = x[0]
+    x2 = x[0] + x[2]
+    y1 = x[1]
+    y2 = x[1] + x[3]
+    return [x1,y1,x2,y2]
 
 def images_to_video(images, output_video, fps=30):
     height,width = images[0].shape[:2]
@@ -210,7 +219,7 @@ def images_to_video(images, output_video, fps=30):
     # 将每一张图片写入视频
     for image in images:
         opencv_image = np.array(image)
-        opencv_image = cv2.cvtColor(opencv_image[...,::-1], cv2.COLOR_RGB2BGR)
+        opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_RGB2BGR)
         video.write(opencv_image)
 
     # 释放资源
