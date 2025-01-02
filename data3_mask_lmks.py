@@ -11,7 +11,7 @@ from mediapipe.tasks.python import vision
 import numpy as np
 from tqdm import tqdm
 import argparse
-
+import random
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 lmk_detector = face_alignment.FaceAlignment(face_alignment.LandmarksType.THREE_D, flip_input=False)
@@ -125,7 +125,7 @@ def process_frame(frame_path,save_base,videoname, size=512):
     mask_list = []
     keypoint_list = []
     head_list = []
-    for lines in tqdm(info, desc=f"{video_clip_name}"):
+    for lines in tqdm(info, desc=f"{frame_path}"):
         try:
             i = int(lines[0])
             # time_start = time.time()
@@ -179,8 +179,9 @@ if __name__ == "__main__":
 
     base = opt.dataset_folder
     save_base = opt.save_folder
-
-    for idname in os.listdir(base):
+    id_list = os.listdir(base)
+    random.shuffle(id_list)
+    for idname in id_list:
         idpath = os.path.join(base,idname)
         save_path = os.path.join(save_base,'frame', idname)
         for videoname in tqdm(os.listdir(idpath), desc=f"{idname}"):
@@ -188,6 +189,7 @@ if __name__ == "__main__":
             frame_names = [os.path.join(videopath,f) for f in os.listdir(videopath) if f.endswith('.mp4')]
             # print('processing:', frame_names[0])
             # try:
+            random.shuffle(frame_names)
             for frame_name in frame_names:
                 process_frame(frame_name,save_path,videoname)
             # except:
